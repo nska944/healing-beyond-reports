@@ -14,30 +14,40 @@ from routes.user import user_bp
 from routes.google_fit import fit_bp
 
 
-# 🔐 Firebase initialization (Docker / Render safe)
+# --------------------------------------------------
+# 🔐 Firebase Admin Initialization (SAFE)
+# --------------------------------------------------
 if not firebase_admin._apps:
     firebase_key_json = os.getenv("FIREBASE_KEY")
 
     if firebase_key_json:
-        firebase_key = json.loads(firebase_key_json)
-        cred = credentials.Certificate(firebase_key)
-        firebase_admin.initialize_app(cred)
-        print("✅ Firebase initialized")
+        try:
+            firebase_key = json.loads(firebase_key_json)
+            cred = credentials.Certificate(firebase_key)
+            firebase_admin.initialize_app(cred)
+            print("✅ Firebase initialized")
+        except Exception as e:
+            print("❌ Firebase init failed:", e)
     else:
-        print("⚠️ FIREBASE_KEY not found. Running in demo mode.")
+        print("⚠️ FIREBASE_KEY not found. Auth will fail.")
 
 
+# --------------------------------------------------
+# Flask App Setup
+# --------------------------------------------------
 app = Flask(__name__)
 app.config.from_object("config")
 db.init_app(app)
 
-# Register blueprints
 app.register_blueprint(admin_bp)
 app.register_blueprint(doctor_bp)
 app.register_blueprint(user_bp)
 app.register_blueprint(fit_bp)
 
 
+# --------------------------------------------------
+# Routes
+# --------------------------------------------------
 @app.route("/")
 def login():
     return render_template("login.html")
@@ -47,20 +57,29 @@ def login():
 def firebase_login():
     id_token = request.form.get("idToken")
 
-    decoded = fb_auth.verify_id_token(id_token)
-    email = decoded["email"]
+    if not id_token:
+        return "Missing token", 400
+
+    try:
+        decoded = fb_auth.verify_id_token(id_token)
+    except Exception as e:
+        print("Firebase auth error:", e)
+        return "Authentication failed", 401
+
+    email = decoded.get("email")
+    if not email:
+        return "Invalid Firebase user", 401
 
     user = User.query.filter_by(email=email).first()
 
     if not user:
         is_first = User.query.count() == 0
-        user = User(
-            email=email,
-            role="admin" if is_first else "user"
-        )
+        role = "admin" if is_first else "user"
+        user = User(email=email, role=role)
         db.session.add(user)
         db.session.commit()
 
+    session.clear()
     session["user_id"] = user.id
     session["email"] = email
     session["role"] = user.role
@@ -76,7 +95,7 @@ def firebase_login():
 
 @app.route("/dashboard")
 def dashboard():
-    if not session.get("health_id"):
+    if session.get("role") != "user":
         return redirect("/")
 
     reports = Report.query.filter_by(
@@ -90,9 +109,12 @@ def dashboard():
     )
 
 
+# --------------------------------------------------
+# DB Init
+# --------------------------------------------------
 with app.app_context():
     db.create_all()
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=10000)
