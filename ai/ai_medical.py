@@ -1,43 +1,40 @@
 import os
 from groq import Groq
 
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+client = None
+if GROQ_API_KEY:
+    client = Groq(api_key=GROQ_API_KEY)
+
 
 def analyze_medical_report(text):
+    if not client:
+        return (
+            "AI analysis service is temporarily unavailable.\n\n"
+            "This deployment is running in demo mode without external AI access.\n"
+            "The system architecture supports AI-assisted diagnosis using NLP "
+            "and can be enabled by configuring the API key."
+        )
+
     prompt = f"""
-You are an AI clinical assistant helping patients understand their medical reports.
+You are an AI medical assistant.
 
-Your task:
-- Write in clear, calm, professional language.
-- Do surface level diagnose diseases.
-- Do NOT prescribe medicines.
-- Explain findings in a patient-friendly way.
-- Highlight general health patterns if visible.
-- Suggest basic lifestyle improvements if relevant.
-- Encourage consulting a qualified doctor for medical decisions.
+Analyze the following medical report text and provide:
+- Overall health summary
+- Possible risk indicators
+- Lifestyle recommendations
+- When to consult a doctor
 
-Structure the response exactly like this:
-
-1. Overall Summary
-2. Key Observations (if any)
-3. General Wellness Suggestions
-4. Important Note
-
-Medical Report Text:
-{text[:2500]}
+Medical Report:
+{text}
 """
 
-    try:
-        response = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=500
-        )
+    response = client.chat.completions.create(
+        model="llama-3.1-8b-instant",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.3,
+        max_tokens=500
+    )
 
-        return response.choices[0].message.content
-
-    except Exception as e:
-        return (
-            "AI summary could not be generated at this time.\n\n"
-            "Please consult a healthcare professional for interpretation."
-        )
+    return response.choices[0].message.content
