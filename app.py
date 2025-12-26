@@ -18,14 +18,16 @@ from routes.google_fit import fit_bp
 # 🔐 Firebase Admin Initialization (Railway / Docker safe)
 # --------------------------------------------------
 if not firebase_admin._apps:
-    firebase_key = os.getenv("FIREBASE_KEY")
+    firebase_key_json = os.getenv("FIREBASE_KEY")
 
-    if not firebase_key:
-        raise RuntimeError("❌ FIREBASE_KEY environment variable missing")
+    if firebase_key_json:
+        firebase_key = json.loads(firebase_key_json)
+        cred = credentials.Certificate(firebase_key)
+        firebase_admin.initialize_app(cred)
+        print("✅ Firebase initialized")
+    else:
+        print("⚠️ FIREBASE_KEY missing – Firebase auth disabled")
 
-    cred = credentials.Certificate(json.loads(firebase_key))
-    firebase_admin.initialize_app(cred)
-    print("✅ Firebase Admin initialized")
 
 
 # --------------------------------------------------
