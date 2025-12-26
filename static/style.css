@@ -1,74 +1,75 @@
 :root {
   --primary: #2563eb;
-  --bg: #f4f6f8;
+  --bg: #f8fafc;
   --card: #ffffff;
-  --text: #1f2937;
-  --muted: #6b7280;
-}
-
-body.dark {
-  --bg: #0f172a;
-  --card: #1e293b;
-  --text: #e5e7eb;
-  --muted: #9ca3af;
-}
-
-* {
-  box-sizing: border-box;
+  --text: #0f172a;
+  --muted: #64748b;
 }
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont;
+  font-family: system-ui, sans-serif;
   background: var(--bg);
   color: var(--text);
 }
 
-.container {
-  max-width: 1100px;
-  margin: auto;
-  padding: 24px;
-}
-
-.card {
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px 30px;
   background: var(--card);
-  border-radius: 14px;
-  padding: 24px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-  margin-bottom: 24px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-h1, h2, h3 {
-  margin-top: 0;
+.logo {
+  font-weight: bold;
 }
 
-button {
+.logout-btn {
+  margin-left: 15px;
+  text-decoration: none;
+  color: white;
+  background: var(--primary);
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+.content {
+  padding: 30px;
+  max-width: 900px;
+  margin: auto;
+}
+
+.login-card {
+  max-width: 400px;
+  margin: 120px auto;
+  background: var(--card);
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.google-btn {
   background: var(--primary);
   color: white;
   border: none;
-  padding: 10px 16px;
+  padding: 12px;
+  width: 100%;
   border-radius: 8px;
   cursor: pointer;
-  font-weight: 600;
 }
 
-button.secondary {
-  background: transparent;
-  color: var(--primary);
-  border: 1px solid var(--primary);
+.report-card {
+  background: var(--card);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
 
-input, textarea, select {
-  width: 100%;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  margin-top: 6px;
-}
-
-footer {
+.footer {
   text-align: center;
-  margin-top: 40px;
-  font-size: 14px;
+  padding: 20px;
   color: var(--muted);
 }

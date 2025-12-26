@@ -8,63 +8,56 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 </head>
 
-<body>
-<div class="container">
-  <div class="card" style="text-align:center">
-    <h1>Healing Beyond Reports</h1>
-    <p>
-      Prototype of AI-assisted Personal Health Record<br>
-      using Machine Learning and NLP
-    </p>
+<body class="centered">
 
-    <button onclick="loginWithGoogle()">Login with Google</button>
+<div class="login-card">
+  <h1>Healing Beyond Reports</h1>
 
-    <form id="tokenForm" method="POST" action="/firebase_login">
-      <input type="hidden" name="idToken" id="idToken">
-    </form>
-  </div>
+  <p class="subtitle">
+    AI-assisted Personal Health Record<br>
+    using Machine Learning & NLP
+  </p>
+
+  <button class="google-btn" onclick="loginWithGoogle()">
+    Sign in with Google
+  </button>
+
+  <form id="tokenForm" method="POST" action="/firebase_login">
+    <input type="hidden" name="idToken" id="idToken">
+  </form>
 </div>
 
 <script>
-const firebaseConfig = {
+  const firebaseConfig = {
   apiKey: "AIzaSyBx8wgb2-gdv8kzQOHn3DRUkZEEErVCn3Y",
   authDomain: "meditrace-ai.firebaseapp.com",
   projectId: "meditrace-ai",
   appId: "1:432950812332:web:51746650fdbba964b3c909"
 };
+  firebase.initializeApp(firebaseConfig);
 
-firebase.initializeApp(firebaseConfig);
+  function loginWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(provider)
+      .then(res => res.user.getIdToken())
+      .then(token => {
+        document.getElementById("idToken").value = token;
+        document.getElementById("tokenForm").submit();
+      })
+      .catch(() => firebase.auth().signInWithRedirect(provider));
+  }
 
-function loginWithGoogle() {
-  const provider = new firebase.auth.GoogleAuthProvider();
-
-  firebase.auth()
-    .signInWithPopup(provider)
-    .then(res => res.user.getIdToken())
-    .then(token => {
-      document.getElementById("idToken").value = token;
-      document.getElementById("tokenForm").submit();
-    })
-    .catch(err => {
-      console.error("Popup failed, using redirect", err);
-      firebase.auth().signInWithRedirect(provider);
-    });
-}
-
-// Handle redirect login
-firebase.auth()
-  .getRedirectResult()
-  .then(result => {
-    if (result.user) {
-      return result.user.getIdToken();
+  firebase.auth().getRedirectResult().then(res => {
+    if (res.user) {
+      return res.user.getIdToken();
     }
-  })
-  .then(token => {
+  }).then(token => {
     if (token) {
       document.getElementById("idToken").value = token;
       document.getElementById("tokenForm").submit();
     }
   });
 </script>
+
 </body>
 </html>

@@ -121,6 +121,12 @@ def dashboard():
         health_id=session.get("health_id")
     )
 
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/")
+
+
 
 # --------------------------------------------------
 # DB Init
