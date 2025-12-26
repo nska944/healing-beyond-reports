@@ -3,6 +3,7 @@ from models.db import db
 from models.user import User
 from models.report import Report
 from config import *
+
 import firebase_admin
 from firebase_admin import credentials, auth as fb_auth
 import os, json
@@ -12,10 +13,19 @@ from routes.doctor import doctor_bp
 from routes.user import user_bp
 from routes.google_fit import fit_bp
 
-# 🔐 Firebase from ENV (Docker safe)
-firebase_key = json.loads(os.environ["FIREBASE_KEY"])
-cred = credentials.Certificate(firebase_key)
-firebase_admin.initialize_app(cred)
+
+# 🔐 Firebase initialization (Docker / Render safe)
+if not firebase_admin._apps:
+    firebase_key_json = os.getenv("FIREBASE_KEY")
+
+    if firebase_key_json:
+        firebase_key = json.loads(firebase_key_json)
+        cred = credentials.Certificate(firebase_key)
+        firebase_admin.initialize_app(cred)
+        print("✅ Firebase initialized")
+    else:
+        print("⚠️ FIREBASE_KEY not found. Running in demo mode.")
+
 
 app = Flask(__name__)
 app.config.from_object("config")
@@ -27,16 +37,19 @@ app.register_blueprint(doctor_bp)
 app.register_blueprint(user_bp)
 app.register_blueprint(fit_bp)
 
+
 @app.route("/")
 def login():
     return render_template("login.html")
 
+
 @app.route("/firebase_login", methods=["POST"])
 def firebase_login():
     id_token = request.form.get("idToken")
-    decoded = fb_auth.verify_id_token(id_token)
 
+    decoded = fb_auth.verify_id_token(id_token)
     email = decoded["email"]
+
     user = User.query.filter_by(email=email).first()
 
     if not user:
@@ -60,6 +73,7 @@ def firebase_login():
     else:
         return redirect("/dashboard")
 
+
 @app.route("/dashboard")
 def dashboard():
     if not session.get("health_id"):
@@ -75,8 +89,10 @@ def dashboard():
         health_id=session.get("health_id")
     )
 
+
 with app.app_context():
     db.create_all()
+
 
 if __name__ == "__main__":
     app.run(debug=True)
