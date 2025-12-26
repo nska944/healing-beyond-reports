@@ -1,8 +1,26 @@
-venv/
+# Python
 __pycache__/
 *.pyc
 .env
+venv/
+
+# Firebase
 firebase_key.json
-poppler-*
+client_secret*.json
+
+# OCR / System binaries
+poppler-*/
+*.exe
+*.dll
+*.zip
+*.tar.xz
+
+# Uploads
 uploads/
-database.db
+
+# Database
+*.db
+
+# OS
+.DS_Store
+Thumbs.db

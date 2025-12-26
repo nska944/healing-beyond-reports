@@ -46,21 +46,52 @@
 </div>
 
 <script>
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com"
-};
-firebase.initializeApp(firebaseConfig);
+  // 🔥 FULL Firebase config (must be complete)
+  const firebaseConfig = {
+    apiKey: "AIzaSyBx8wgb2-gdv8kzQOHn3DRUkZEEErVCn3Y",
+    authDomain: "meditrace-ai.firebaseapp.com",
+    projectId: "meditrace-ai",
+    storageBucket: "meditrace-ai.appspot.com",
+    messagingSenderId: "432950812332",
+    appId: "1:432950812332:web:51746650fdbba964b3c909"
+  };
 
-function loginWithGoogle() {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  firebase.auth().signInWithPopup(provider).then(res => {
-    return res.user.getIdToken();
-  }).then(token => {
-    document.getElementById("idToken").value = token;
-    document.getElementById("tokenForm").submit();
-  });
-}
+  firebase.initializeApp(firebaseConfig);
+
+  function loginWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+
+    firebase.auth()
+      .signInWithPopup(provider)
+      .then(result => result.user.getIdToken())
+      .then(token => {
+        document.getElementById("idToken").value = token;
+        document.getElementById("tokenForm").submit();
+      })
+      .catch(error => {
+        console.error("Popup failed, falling back to redirect", error);
+
+        // ✅ POPUP FAILED → USE REDIRECT (bullet-proof)
+        firebase.auth().signInWithRedirect(provider);
+      });
+  }
+
+  // 🔁 Handle redirect result (important)
+  firebase.auth()
+    .getRedirectResult()
+    .then(result => {
+      if (result.user) {
+        return result.user.getIdToken();
+      }
+    })
+    .then(token => {
+      if (token) {
+        document.getElementById("idToken").value = token;
+        document.getElementById("tokenForm").submit();
+      }
+    })
+    .catch(err => console.error("Redirect error:", err));
 </script>
+
 </body>
 </html>
