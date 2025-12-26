@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Doctor Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="container">
+
+  <div class="card">
+    <h2>Doctor Dashboard</h2>
+    <form method="POST">
+      <input name="health_id" placeholder="Enter Patient Health ID" required>
+      <button type="submit">Search</button>
+    </form>
+  </div>
+
+  {% for r in reports %}
+  <div class="card">
+    <h4>{{ r.filename }}</h4>
+    <p>{{ r.ai_summary }}</p>
+
+    <form method="POST" action="/doctor/comment" enctype="multipart/form-data">
+      <textarea name="content" placeholder="Doctor notes"></textarea>
+      <input type="file" name="prescription">
+      <button type="submit">Add Comment</button>
+      <input type="hidden" name="report_id" value="{{ r.id }}">
+    </form>
+  </div>
+  {% endfor %}
+
+</div>
+
+</body>
+</html>

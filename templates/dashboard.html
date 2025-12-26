@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>User Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="container">
+
+  <div class="card">
+    <h2>User Dashboard</h2>
+    <p><b>Health ID:</b> {{ health_id }}</p>
+    <button class="secondary" onclick="toggleDark()">Toggle Dark Mode</button>
+  </div>
+
+  <div class="card">
+    <h3>Upload Medical Report</h3>
+    <form method="POST" action="/upload" enctype="multipart/form-data">
+      <input type="file" name="report" required>
+      <button type="submit">Upload & Analyze</button>
+    </form>
+  </div>
+
+  {% for r in reports %}
+  <div class="card">
+    <h4>{{ r.filename }}</h4>
+    <p><b>AI Summary</b></p>
+    <p>{{ r.ai_summary }}</p>
+
+    <hr>
+    <p><b>Doctor Comments</b></p>
+    {% if r.comments %}
+      {% for c in r.comments %}
+        <p>{{ c.content }}</p>
+        {% if c.prescription_file %}
+          <a href="/uploads/{{ c.prescription_file }}">Download Prescription</a>
+        {% endif %}
+      {% endfor %}
+    {% else %}
+      <p style="color:var(--muted)">No comments yet</p>
+    {% endif %}
+  </div>
+  {% endfor %}
+
+  <footer>
+    Healing Beyond Reports · BNM Institute of Technology
+  </footer>
+
+</div>
+
+<script>
+function toggleDark(){
+  document.body.classList.toggle("dark");
+}
+</script>
+
+</body>
+</html>

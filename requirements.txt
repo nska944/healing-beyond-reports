@@ -1,0 +1,9 @@
+flask
+flask_sqlalchemy
+firebase-admin
+groq
+pytesseract
+pdf2image
+pillow
+requests
+gunicorn
