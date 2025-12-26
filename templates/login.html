@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <title>Healing Beyond Reports</title>
   <link rel="stylesheet" href="/static/style.css">
@@ -11,14 +11,16 @@
 <body>
 <div class="container">
 
-  <div class="card" style="text-align:center">
+  <div class="card center">
     <h1>Healing Beyond Reports</h1>
-    <p style="color:var(--muted)">
+    <p class="subtitle">
       Prototype of AI-assisted Personal Health Record<br>
-      using Machine Learning and NLP
+      using Machine Learning & NLP
     </p>
 
-    <button onclick="loginWithGoogle()">Login with Google</button>
+    <button class="google-btn" onclick="loginWithGoogle()">
+      Sign in with Google
+    </button>
 
     <form id="tokenForm" method="POST" action="/firebase_login">
       <input type="hidden" name="idToken" id="idToken">
@@ -28,9 +30,7 @@
   <footer>
     <p><b>Presented by</b></p>
     <p>
-      Vinuthashree Gowd (1BG22AI116) ·
-      Preethi M (1BG22AI080) ·
-      Yashavanthagowda R G (1BG22AI411)
+      Vinuthashree Gowd · Preethi M · Yashavanthagowda R G
     </p>
 
     <p><b>Under the guidance of</b><br>
@@ -38,24 +38,23 @@
     </p>
 
     <p>
-      Department of AI & ML<br>
-      BNM Institute of Technology, Bengaluru – 560070
+      Dept. of AI & ML<br>
+      BNM Institute of Technology, Bengaluru
     </p>
   </footer>
 
 </div>
 
 <script>
-  // 🔥 FULL Firebase config (must be complete)
+  // 🔥 Firebase Web Config (Frontend only)
   const firebaseConfig = {
-  apiKey: "AIzaSyBx8wgb2-gdv8kzQOHn3DRUkZEEErVCn3Y",
-  authDomain: "meditrace-ai.firebaseapp.com",
-  projectId: "meditrace-ai",
-  storageBucket: "meditrace-ai.firebasestorage.app",
-  messagingSenderId: "432950812332",
-  appId: "1:432950812332:web:51746650fdbba964b3c909",
-  measurementId: "G-J3G0J1RMV8"
-};
+    apiKey: "AIzaSyBx8wgb2-gdv8kzQOHn3DRUkZEEErVCn3Y",
+    authDomain: "meditrace-ai.firebaseapp.com",
+    projectId: "meditrace-ai",
+    storageBucket: "meditrace-ai.appspot.com",
+    messagingSenderId: "432950812332",
+    appId: "1:432950812332:web:51746650fdbba964b3c909"
+  };
 
   firebase.initializeApp(firebaseConfig);
 
@@ -64,20 +63,18 @@
 
     firebase.auth()
       .signInWithPopup(provider)
-      .then(result => result.user.getIdToken())
+      .then(res => res.user.getIdToken())
       .then(token => {
         document.getElementById("idToken").value = token;
         document.getElementById("tokenForm").submit();
       })
-      .catch(error => {
-        console.error("Popup failed, falling back to redirect", error);
-
-        // ✅ POPUP FAILED → USE REDIRECT (bullet-proof)
+      .catch(err => {
+        console.warn("Popup blocked, using redirect", err);
         firebase.auth().signInWithRedirect(provider);
       });
   }
 
-  // 🔁 Handle redirect result (important)
+  // Handle redirect login (mobile / popup blocked)
   firebase.auth()
     .getRedirectResult()
     .then(result => {
@@ -91,7 +88,7 @@
         document.getElementById("tokenForm").submit();
       }
     })
-    .catch(err => console.error("Redirect error:", err));
+    .catch(err => console.error("Redirect auth error:", err));
 </script>
 
 </body>
