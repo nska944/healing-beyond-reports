@@ -13,26 +13,31 @@ from routes.doctor import doctor_bp
 from routes.user import user_bp
 from routes.google_fit import fit_bp
 
-
 # --------------------------------------------------
-# 🔐 Firebase Admin Initialization (Railway-safe)
+# 🔐 Firebase Admin Init
 # --------------------------------------------------
 if not firebase_admin._apps:
     firebase_key_json = os.getenv("FIREBASE_KEY")
-
     if not firebase_key_json:
         raise RuntimeError("❌ FIREBASE_KEY environment variable missing")
 
-    firebase_key = json.loads(firebase_key_json)
-    cred = credentials.Certificate(firebase_key)
+    cred = credentials.Certificate(json.loads(firebase_key_json))
     firebase_admin.initialize_app(cred)
     print("✅ Firebase initialized")
-
 
 # --------------------------------------------------
 # Flask App Setup
 # --------------------------------------------------
 app = Flask(__name__)
+
+# 🔥 SESSION CONFIG (THIS FIXES REDIRECT LOOP)
+app.secret_key = SECRET_KEY
+app.config.update(
+    SESSION_COOKIE_SECURE=True,      # Railway uses HTTPS
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="None"   # REQUIRED for OAuth
+)
+
 app.config.from_object("config")
 db.init_app(app)
 
@@ -41,29 +46,32 @@ app.register_blueprint(doctor_bp)
 app.register_blueprint(user_bp)
 app.register_blueprint(fit_bp)
 
-
 # --------------------------------------------------
 # Routes
 # --------------------------------------------------
 @app.route("/")
 def login():
+    # ✅ If already logged in, don't show login again
+    if session.get("role") == "admin":
+        return redirect("/admin")
+    if session.get("role") == "doctor":
+        return redirect("/doctor")
+    if session.get("role") == "user":
+        return redirect("/dashboard")
+
     return render_template("login.html")
 
 
 @app.route("/firebase_login", methods=["POST"])
 def firebase_login():
     id_token = request.form.get("idToken")
-
     if not id_token:
         return "Missing token", 400
 
     try:
-        decoded = fb_auth.verify_id_token(
-            id_token,
-            check_revoked=False   # IMPORTANT for Railway
-        )
+        decoded = fb_auth.verify_id_token(id_token)
     except Exception as e:
-        print("Firebase verification failed:", e)
+        print("Firebase auth error:", e)
         return "Authentication failed", 401
 
     email = decoded.get("email")
@@ -79,11 +87,16 @@ def firebase_login():
         db.session.add(user)
         db.session.commit()
 
+    # 🔥 VERY IMPORTANT: DO NOT CLEAR AFTER SETTING
     session.clear()
     session["user_id"] = user.id
     session["email"] = email
     session["role"] = user.role
-    session["health_id"] = user.health_id if user.role == "user" else None
+    session["health_id"] = user.health_id
+
+    session.modified = True  # 🔑 force save
+
+    print("✅ Logged in:", session)
 
     if user.role == "admin":
         return redirect("/admin")

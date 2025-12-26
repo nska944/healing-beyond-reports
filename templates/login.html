@@ -10,10 +10,9 @@
 
 <body>
 <div class="container">
-
   <div class="card" style="text-align:center">
     <h1>Healing Beyond Reports</h1>
-    <p style="color:var(--muted)">
+    <p>
       Prototype of AI-assisted Personal Health Record<br>
       using Machine Learning and NLP
     </p>
@@ -24,64 +23,48 @@
       <input type="hidden" name="idToken" id="idToken">
     </form>
   </div>
-
-  <footer>
-    <p><b>Presented by</b></p>
-    <p>
-      Vinuthashree Gowd (1BG22AI116) ·
-      Preethi M (1BG22AI080) ·
-      Yashavanthagowda R G (1BG22AI411)
-    </p>
-
-    <p><b>Under the guidance of</b><br>
-      Dr. Kirti J, Assistant Professor
-    </p>
-
-    <p>
-      Department of AI & ML<br>
-      BNM Institute of Technology, Bengaluru – 560070
-    </p>
-  </footer>
-
 </div>
 
 <script>
-  // 🔥 Firebase Web Config (from Firebase Console → Web App)
-  const firebaseConfig = {
-    apiKey: "AIzaSyBx8wgb2-gdv8kzQOHn3DRUkZEEErVCn3Y",
-    authDomain: "meditrace-ai.firebaseapp.com",
-    projectId: "meditrace-ai",
-    storageBucket: "meditrace-ai.firebasestorage.app",
-    messagingSenderId: "432950812332",
-    appId: "1:432950812332:web:51746650fdbba964b3c909"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyBx8wgb2-gdv8kzQOHn3DRUkZEEErVCn3Y",
+  authDomain: "meditrace-ai.firebaseapp.com",
+  projectId: "meditrace-ai",
+  appId: "1:432950812332:web:51746650fdbba964b3c909"
+};
 
-  firebase.initializeApp(firebaseConfig);
+firebase.initializeApp(firebaseConfig);
 
-  function loginWithGoogle() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    firebase.auth().signInWithRedirect(provider);
-  }
+function loginWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
 
-  // Handle redirect result
   firebase.auth()
-    .getRedirectResult()
-    .then(result => {
-      if (result.user) {
-        return result.user.getIdToken(true);
-      }
-    })
+    .signInWithPopup(provider)
+    .then(res => res.user.getIdToken())
     .then(token => {
-      if (token) {
-        document.getElementById("idToken").value = token;
-        document.getElementById("tokenForm").submit();
-      }
+      document.getElementById("idToken").value = token;
+      document.getElementById("tokenForm").submit();
     })
     .catch(err => {
-      console.error("Firebase redirect error:", err);
-      alert("Authentication failed. Try again.");
+      console.error("Popup failed, using redirect", err);
+      firebase.auth().signInWithRedirect(provider);
     });
-</script>
+}
 
+// Handle redirect login
+firebase.auth()
+  .getRedirectResult()
+  .then(result => {
+    if (result.user) {
+      return result.user.getIdToken();
+    }
+  })
+  .then(token => {
+    if (token) {
+      document.getElementById("idToken").value = token;
+      document.getElementById("tokenForm").submit();
+    }
+  });
+</script>
 </body>
 </html>
