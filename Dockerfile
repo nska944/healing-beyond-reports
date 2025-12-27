@@ -24,4 +24,5 @@ COPY . .
 EXPOSE 10000
 
 # Run app with gunicorn
-CMD ["gunicorn", "-b", "0.0.0.0:10000", "app:app"]
+# Run app with gunicorn
+CMD gunicorn -b 0.0.0.0:$PORT app:app
